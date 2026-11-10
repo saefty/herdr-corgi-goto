@@ -1,0 +1,9 @@
+$ npm run dev
+
+> orbit-sync@0.4.0 dev
+> vite
+
+  VITE v6.2.0  ready in 312 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  press h + enter to show help

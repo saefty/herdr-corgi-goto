@@ -1,0 +1,9 @@
+#!/bin/sh
+# A stand-in for the GitHub CLI: answers `gh pr view 7 -R acme/bookshelf` from a fixture, everything else fails.
+# No network.
+if [ "$1 $2 $3 $4 $5" = "pr view 7 -R acme/bookshelf" ]; then
+  echo '{"url":"https://github.com/acme/bookshelf/pull/7","number":7,"title":"Add due-date reminders","state":"OPEN","headRefName":"feat/due-reminders","baseRefName":"main","headRefOid":"0000000000000000000000000000000000000007"}'
+  exit 0
+fi
+echo "demo gh: no network" >&2
+exit 1

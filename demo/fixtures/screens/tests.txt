@@ -1,0 +1,10 @@
+$ npm test -- --watch
+
+ PASS  test/loans.test.ts
+ PASS  test/reminders.test.ts
+   ✓ mails the borrower two days before the due date (12 ms)
+   ✓ skips loans that are already returned (3 ms)
+   ✓ sends one reminder per loan (4 ms)
+
+Tests:       14 passed, 14 total
+Watching for file changes…

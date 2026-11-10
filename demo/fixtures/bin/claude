@@ -1,0 +1,5 @@
+#!/bin/sh
+# A stand-in agent for "Start agent": shows the task Herdr starts it with and reports working. No network.
+printf '\033]7501;app=claude-code:state=working\007'
+printf '\n > %s\n\n ● On it.\n' "$*"
+exec sleep 86400

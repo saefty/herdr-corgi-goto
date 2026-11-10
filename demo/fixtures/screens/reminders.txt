@@ -1,0 +1,19 @@
+
+ ✻ bookshelf · feat/due-reminders
+
+ > Add due-date reminders: mail the borrower two days before a loan is due.
+
+ ● I'll add a reminder job next to the nightly scheduler and reuse the mail
+   template from src/notify/email.ts.
+
+ ● Read(src/jobs/scheduler.ts)
+   ⎿  Read 48 lines
+
+ ● Write(src/loans/reminders.ts)
+   ⎿  Wrote 42 lines
+
+ ● Write(test/reminders.test.ts)
+   ⎿  Wrote 31 lines
+
+ ✻ Running the tests… (esc to interrupt)
+

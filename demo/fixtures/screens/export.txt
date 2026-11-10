@@ -1,0 +1,10 @@
+
+ ✻ ledger · main
+
+ > Export invoices as CSV, one file per month.
+
+ ● Done. `npm run export -- --month 2026-10` writes exports/2026-10.csv
+   (semicolon separated, 214 invoices). Tests pass.
+
+ >
+

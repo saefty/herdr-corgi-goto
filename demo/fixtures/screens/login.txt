@@ -1,0 +1,15 @@
+
+ ✻ orbit-sync · fix/login-redirect
+
+ > After sign-in the app lands on /undefined. Fix the login redirect.
+
+ ● The callback drops the return path: it reads `next` from the query, but
+   the OAuth provider only gives back `state`.
+
+ ● Update(src/auth/callback.ts)
+
+   Do you want to make this edit to callback.ts?
+   ❯ 1. Yes
+     2. Yes, and don't ask again this session
+     3. No, and tell the agent what to do differently
+

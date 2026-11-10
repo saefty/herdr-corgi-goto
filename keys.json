@@ -1,0 +1,6 @@
+{
+  "global": {
+    "cmd-shift-p": "mod.open:goto",
+    "cmd-alt-shift-p": "app.palette"
+  }
+}
