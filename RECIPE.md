@@ -1,5 +1,7 @@
 # Go to
 
+Jump to anything you already have open in Herdr. Type a few words of an agent's task, a repo name or a PR link, and ⌘⇧P takes you there before it opens anything new.
+
 A ⌘⇧P box in the style of the command palette. You type or paste anything, and it finds what is already
 open before it offers to open something new: agents, terminals, tabs and spaces, local git repos, GitHub
 PRs and repos, folders, URLs, layouts and app commands.
@@ -56,5 +58,7 @@ opens the box under the tab bar. Typing a word from an agent's tab finds that ag
 gives the agents titles and topics, claims PR links, and passes `control/query.txt` on as the shared
 `goto.demo.query`. `demo/record.sh` opens a second window on it, fills it with stand-in agents (`fixtures/agent.sh`
 reports a status with OSC 7501 and shows a fixed screen), takes the screenshots and the GIF, and quits.
-`fixtures/bin/gh` answers the one PR lookup, so nothing goes to the network. `goto.demo.query` is goto's only demo
-hook: when it holds a string, the open box types it in. Nothing sets it in normal use.
+`fixtures/bin/gh` answers the one PR lookup, so nothing goes to the network. `goto.demo.query` is goto's demo
+hook: when it holds a string, the open box types it in and publishes its rows' titles as `goto.demo.rows`
+`{query, titles}`; `goto.demo.pick` `{title}` then runs the first row whose title starts with it, as Enter would
+(the herdr-corgi interplay suite uses both). Nothing sets them in normal use.
