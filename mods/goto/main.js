@@ -283,6 +283,11 @@ export default class Goto extends View {
   refresh(cx) {
     const seen = new Set();
     this.list = this.compute(this.query.trim()).sort((a, b) => a.tier - b.tier || b.score - a.score).filter((r) => !seen.has(r.id) && seen.add(r.id));
+    // Demo only (RECIPE.md, "Demo"): while a demo query is set, the rows' titles go to "goto.demo.rows" for scripts.
+    if (typeof shared("goto.demo.query") === "string") {
+      const rows = { query: this.query, titles: this.list.map((r) => r.title) };
+      if (JSON.stringify(rows) !== JSON.stringify(shared("goto.demo.rows"))) setShared("goto.demo.rows", rows);
+    }
     this.fetchPrs(cx);
     cx.notify();
   }
@@ -618,6 +623,12 @@ export default class Goto extends View {
     if (typeof dq === "string" && dq !== this.demoQuery) {
       this.demoQuery = dq;
       cx.timer.after(0, (cx) => { this.input.set_value(dq); this.query = dq; this.at = 0; this.scroll = 0; this.refresh(cx); });
+    }
+    // Demo only: "goto.demo.pick" {title} runs the first row whose title starts with it, as Enter would.
+    const dp = shared("goto.demo.pick");
+    if (dp?.title && !this.picking) {
+      this.picking = true;
+      cx.timer.after(0, (cx) => { this.picking = false; setShared("goto.demo.pick", null); this.go(this.list.find((r) => r.title.startsWith(dp.title)), cx); });
     }
     this.at = Math.min(this.at, Math.max(0, rows.length - 1));
     const total = rows.length * ROW_H, fixed = total > LIST_H;
