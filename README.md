@@ -1,4 +1,4 @@
-# Go to for Herdr
+# Corgi · Go to for Herdr
 
 <h3 align="center">Jump to anything you already have open in Herdr. Type a few words of an agent's task, a repo name or a PR link, and ⌘⇧P takes you there before it opens anything new.</h3>
 
