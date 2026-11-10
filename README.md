@@ -1,5 +1,7 @@
 # Go to for Herdr
 
+Part of [Corgi](https://github.com/saefty/herdr-corgi), a set of Herdr mods that plug into each other.
+
 A ⌘⇧P box for Herdr that finds what you already have open before it opens anything new. Paste a PR link, type a
 repo name or a few words from a session, and Enter takes you there.
 
