@@ -68,7 +68,7 @@ Go to, [PR review](https://github.com/saefty/herdr-corgi-pr-review) and the [cha
 </tr>
 </table>
 
-Or tell your agent: add herdr.dev/mods/saefty/herdr-corgi-goto
+Or tell your agent: `Read ~/.config/herdr-app/AGENTS.md, then add this mod: https://github.com/saefty/herdr-corgi-goto/tree/main`
 
 By hand, step by step: copy `mods/goto` to `~/.config/herdr-app/mods/` and merge `keys.json` into
 `~/.config/herdr-app/keys.json`. It binds ⌘⇧P to Go to and moves Herdr's palette to ⌘⌥⇧P (its commands also show up
