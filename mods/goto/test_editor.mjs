@@ -15,6 +15,11 @@ assert.deepEqual(foundFrom(mac, at("/people/me/Applications/IntelliJ IDEA Ultima
 assert.deepEqual(foundFrom(mac, mac.map(() => false)), {});
 const linux = candidates("/people/me", "linux");
 assert.deepEqual(foundFrom(linux, linux.map((c) => c.path === "/snap/bin/code")), { vscode: { cli: "/snap/bin/code" } });
+// IntelliJ from the Snap store has a launcher of its own name, per edition: found, and started like `idea`.
+for (const snap of ["/snap/bin/intellij-idea-community", "/snap/bin/intellij-idea-ultimate"]) {
+  const got = foundFrom(linux, linux.map((c) => c.path === snap));
+  assert.deepEqual([got, openArgv("idea", got.idea, { file: "/co/A.java", line: 4 })], [{ idea: { cli: snap } }, [snap, ["--line", "4", "/co/A.java"]]]);
+}
 const found = { vscode: { app: "/Applications/Visual Studio Code.app" }, idea: { app: "/Applications/IntelliJ IDEA.app" } };
 assert.deepEqual(installed(found).map((e) => [e.id, e.label, e.short]), [["vscode", "VS Code", "VS"], ["idea", "IntelliJ", "IJ"]]);
 

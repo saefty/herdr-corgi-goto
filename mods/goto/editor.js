@@ -8,7 +8,7 @@
 const seg = (abs) => String(abs).split("/").map(encodeURIComponent).join("/"); // every path segment encoded, the slashes kept
 export const EDITORS = [
   { id: "vscode", name: "VS Code", label: "VS Code", short: "VS", apps: ["Visual Studio Code"], cli: ["code"], url: (abs, n) => `vscode://file${seg(abs)}:${n}` },
-  { id: "idea", name: "IntelliJ IDEA", label: "IntelliJ", short: "IJ", apps: ["IntelliJ IDEA", "IntelliJ IDEA Ultimate", "IntelliJ IDEA CE", "IntelliJ IDEA Community Edition"], cli: ["idea", "idea.sh"],
+  { id: "idea", name: "IntelliJ IDEA", label: "IntelliJ", short: "IJ", apps: ["IntelliJ IDEA", "IntelliJ IDEA Ultimate", "IntelliJ IDEA CE", "IntelliJ IDEA Community Edition"], cli: ["idea", "idea.sh", "intellij-idea-community", "intellij-idea-ultimate"], // the last two: the Snap's launchers (/snap/bin)
     url: (abs, n) => `idea://open?file=${encodeURIComponent(abs)}&line=${n}` },
   { id: "cursor", name: "Cursor", label: "Cursor", short: "Cu", apps: ["Cursor"], cli: ["cursor"], url: (abs, n) => `cursor://file${seg(abs)}:${n}` },
   { id: "zed", name: "Zed", label: "Zed", short: "Zed", apps: ["Zed"], cli: ["zed"], url: (abs, n) => `zed://file${seg(abs)}:${n}` },
