@@ -43,7 +43,7 @@ repo name or a few words from a session, and Enter takes you there.
   folders and other URLs. Finds the owner for a bare repo name from your clones.
 - "Already open: …" comes first when what you ask for is open somewhere.
 - A repo you have here and a folder also offer "Open … in VS Code" (or IntelliJ IDEA for a Maven or Gradle project,
-  Cursor, Zed): the folder opens in the editor, with one click or Enter.
+  Cursor, Zed): the folder opens in the editor, with one click or Enter. A path that is no folder gets no such row.
 - "Start agent: <text>" starts the agent you pick most in Herdr with the text as its task, optionally in a new
   worktree (`~/.herdr/worktrees/<repo>/agent-<words>`, branch `agent/<words>`).
 - Ranking without an LLM: fuzzy matching on names plus word matching on what other mods know about a session,

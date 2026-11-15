@@ -11,7 +11,7 @@
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents, checking } from "herdr";
-import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv } from "./match.js";
+import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv, isFolder } from "./match.js";
 
 import { PROJECT_MARKS, candidates, foundFrom, gitLink, editorOf, editorName, openingLabel, openArgv } from "./editor.js";
 
@@ -58,7 +58,7 @@ export default class Goto extends View {
     this.asked = null;    // {query, at, loading} | {query, matches} | {query, error}
     this.busy = null;     // "Cloning owner/repo…" while a clone runs (the box stays open)
     this.editors = null;  // {<id>: how}: the installed editors, once a row asked for them
-    this.folders = {};    // folder -> {marks, common, linked} | {loading}: what its "Open in <Editor>" row needs
+    this.folders = {};    // folder -> {marks, common, linked} | {loading} | {missing}: what its "Open in <Editor>" row needs
     this.list = [];       // the rows shown: computed by refresh() off the render path, render only reads them
     this.tokCache = new Map(); // open entry id -> {key, tok}: its tokens while its text is unchanged
     this.tick = 0;
@@ -231,11 +231,11 @@ export default class Goto extends View {
   // "Open <name> in <Editor>" for a folder you named: a repo you have here, or a path. Which editor: a pick kept
   // for the project by a mod that offers one (shared "editor.choice"), else IntelliJ for a Maven or Gradle project,
   // else VS Code (editor.js). Null until the installed editors and the folder's project were read (fetchFolders),
-  // or when no editor is installed.
+  // when no editor is installed, and when there is no such folder (a typed path, a repo the cache still lists).
   editorRow(folder, name) {
     if (!folder?.startsWith("/")) return null; // never an argument that could read as an option
     const info = (this.folders[folder] ??= { loading: true });
-    if (!this.editors || info.loading) return null;
+    if (!this.editors || info.loading || info.missing) return null;
     const extra = this.config.editors ?? [];
     const ed = editorOf({ marks: info.marks, linked: info.linked, choice: shared("editor.choice"), key: info.common, found: this.editors, extra });
     if (!ed) return null;
@@ -245,7 +245,7 @@ export default class Goto extends View {
 
   // Reads what the editor rows wait for, as files (no process): once the installed editors (each app's Info.plist
   // on macOS and the launchers on Linux; both are looked at, the apps first, so the platform need not be known),
-  // per folder its `.git` and the marks of a Maven or Gradle project.
+  // per folder whether it is there at all, its `.git` and the marks of a Maven or Gradle project.
   fetchFolders(cx) {
     const waiting = Object.entries(this.folders).filter(([, v]) => v.loading && !v.started);
     if (!waiting.length) return;
@@ -258,8 +258,9 @@ export default class Goto extends View {
       })();
       await this.editorsRead;
       for (const [folder] of waiting) {
-        const [git, ...got] = await Promise.all([read(`${folder}/.git`), ...PROJECT_MARKS.map((m) => read(`${folder}/${m === ".idea" ? ".idea/misc.xml" : m}`))]);
-        this.folders[folder] = { marks: PROJECT_MARKS.filter((_m, k) => got[k] !== null), ...gitLink(git, folder) };
+        const [there, git, ...got] = await Promise.all([readTextFile(folder).then(() => false, isFolder),
+          read(`${folder}/.git`), ...PROJECT_MARKS.map((m) => read(`${folder}/${m === ".idea" ? ".idea/misc.xml" : m}`))]);
+        this.folders[folder] = there ? { marks: PROJECT_MARKS.filter((_m, k) => got[k] !== null), ...gitLink(git, folder) } : { missing: true };
       }
       this.refresh(cx);
     });

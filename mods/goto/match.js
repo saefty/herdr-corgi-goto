@@ -29,6 +29,9 @@ export function parseInput(raw) {
 }
 
 export const expandHome = (p, home) => (p ?? "").replace(/^~(?=\/|$)/, home).replace(/(.)\/+$/, "$1");
+// Is a path a folder, without a process: reading a folder as text fails with the system's "is a directory" error
+// (EISDIR, 21 on macOS and Linux); a path that is not there reads as null and a file as its text. e: that read's error.
+export const isFolder = (e) => /\(os error 21\)|is a directory/i.test(String(e?.message ?? e));
 
 // "git@github.com:octo/x.git" / "https://github.com/octo/x" -> "octo/x"
 export function slugOf(url) {

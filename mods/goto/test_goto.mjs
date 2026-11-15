@@ -1,7 +1,7 @@
 // node --test mods/goto/test_goto.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseInput, resolveRepo, rank, tokens, fuzzy, slugOf, originOf, mergeItems, substitute, matchHandlers, contextOf, route, agentTask, branchName, withEnv } from "./match.js";
+import { parseInput, resolveRepo, rank, tokens, fuzzy, slugOf, originOf, mergeItems, substitute, matchHandlers, contextOf, route, agentTask, branchName, withEnv, isFolder } from "./match.js";
 
 test("parses GitHub PRs, repos, paths, URLs and text", () => {
   assert.deepEqual(parseInput("https://github.com/octo/ledger/pull/6801/files"), { kind: "pr", owner: "octo", repo: "ledger", number: 6801 });
@@ -151,4 +151,12 @@ test("start agent: instructions, where they start, branch names, the context's e
   assert.deepEqual(withEnv(["env", "CLAUDE_CONFIG_DIR=/p", "claude"], { CLAUDE_CONFIG_DIR: null }), ["env", "-u", "CLAUDE_CONFIG_DIR", "claude"]);
   assert.deepEqual(withEnv(["claude"], { CLAUDE_CONFIG_DIR: "/p" }), ["env", "CLAUDE_CONFIG_DIR=/p", "claude"]);
   assert.deepEqual(withEnv(["codex", "--no-daemon"], undefined), ["codex", "--no-daemon"]);
+});
+
+test("only reading a folder as text says it is a folder", () => {
+  assert.equal(isFolder(new Error("`herdr.readTextFile`: Is a directory (os error 21)")), true);
+  assert.equal(isFolder("Error: EISDIR: illegal operation on a directory (os error 21)"), true);
+  assert.equal(isFolder(new Error("`herdr.readTextFile`: stream did not contain valid UTF-8")), false); // a binary file
+  assert.equal(isFolder(new Error("`herdr.readTextFile`: Permission denied (os error 13)")), false);
+  assert.equal(isFolder(undefined), false);
 });
