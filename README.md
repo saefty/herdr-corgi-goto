@@ -36,6 +36,8 @@ repo name or a few words from a session, and Enter takes you there.
 
 ![An instruction offers to start an agent in the named space](docs/screenshots/start-agent.png)
 
+![A path offers "Open … as space" and "Open … in VS Code"](docs/screenshots/editor.png)
+
 ## Features
 
 - Searches agents, terminals, tabs, spaces, local git repos, layouts and app commands in one list.

@@ -10,7 +10,7 @@ run="$here/run" user="$here/run/user" fx="$here/fixtures" out="$root/docs/screen
 export HERDR_APP_HOME="$run/app"
 mkdir -p "$out" "$frames"
 
-HOME="$user" SHELL=/bin/zsh PATH="$fx/bin:$PATH" DO_NOT_TRACK=1 HERDR_TELEMETRY=0 \
+HOME="$user" HC_SESSION=goto-demo SHELL=/bin/zsh PATH="$fx/bin:$PATH" DO_NOT_TRACK=1 HERDR_TELEMETRY=0 \
   /Applications/Herdr.app/Contents/MacOS/Herdr > "$run/herdr.log" 2>&1 &
 until herdr-app status > /dev/null 2>&1; do sleep 1; done
 sleep 2
@@ -45,12 +45,13 @@ query() { printf '%s' "$1" > "$run/app/control/query.txt"; sleep "${2:-0.4}"; }
 crop() { ffmpeg -loglevel error -y -i "$1" -vf "crop=$3" "$2"; } # in, out, w:h:x:y (window pixels at 2x)
 
 # Screenshots.
-is_open() { herdr-app status | grep -q '"goto"' || { echo "Go to did not open" >&2; do_ app.quit; HOME="$user" hc server stop; exit 1; }; }
+is_open() { herdr-app status | grep -q '"goto"' || { echo "Go to did not open" >&2; do_ app.quit; HOME="$user" HC_SESSION=goto-demo hc server stop; exit 1; }; }
 do_ mod.open --name goto; sleep 1; is_open
 query "reminder mail" 2; snap "$frames/s1.png"; crop "$frames/s1.png" "$root/preview.png" 1960:600:0:0
 query "https://github.com/acme/bookshelf/pull/7" 2.5; snap "$frames/s2.png"; crop "$frames/s2.png" "$out/pr-link.png" 1400:520:580:70
 query "orbit" 2; snap "$frames/s3.png"; crop "$frames/s3.png" "$out/repo-name.png" 1400:720:580:70
 query "zoom" 2; snap "$frames/s4.png"; crop "$frames/s4.png" "$out/commands.png" 1400:600:580:70
+query "~/code/orbit-web" 3; snap "$frames/s6.png"; crop "$frames/s6.png" "$out/editor.png" 1400:440:580:70
 query "bookshelf: add retry to the mailer" 2; snap "$frames/s5.png"; crop "$frames/s5.png" "$out/start-agent.png" 1400:440:580:70
 do_ mod.open --name goto # again: closes it
 query ""
@@ -70,5 +71,5 @@ echo "file 'f$(printf %02d $n).png'" >> "$frames/list.txt" # the concat demuxer 
 
 [ -z "${KEEP:-}" ] || exit 0 # KEEP=1: leave the demo window open to try things
 do_ app.quit || true
-HOME="$user" hc server stop > /dev/null || true
+HOME="$user" HC_SESSION=goto-demo hc server stop > /dev/null || true
 ls -l "$root/preview.png" "$out"

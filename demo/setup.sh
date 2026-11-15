@@ -35,6 +35,12 @@ repo ledger
 
 cp -R "$root/mods/goto" "$here/fixtures/goto-demo" "$app/mods/"
 printf '{ "roots": ["~/code"], "depth": 2 }\n' > "$app/goto.config.json"
+# "Open … in <Editor>": two empty app folders in the stand-in home, so the rows find VS Code and IntelliJ IDEA, and
+# a dry run in the Herdr home, so picking such a row starts nothing.
+for a in "Visual Studio Code" "IntelliJ IDEA"; do
+  mkdir -p "$user/Applications/$a.app/Contents"; printf '<?xml version="1.0"?><plist version="1.0"><dict/></plist>\n' > "$user/Applications/$a.app/Contents/Info.plist"
+done
+echo "demo: no editor is started" > "$app/editor.dry-run"
 printf '{ "appearance": "dark", "telemetry": false, "sounds": { "enabled": false }, "core": "%s" }\n' "$core" > "$app/settings.json"
 # Mostly off screen, so your mouse doesn't hover rows in the shots; skip the welcome tour and the "Updated" pill.
 printf '{ "state": "windowed", "bounds": [1800.0, 900.0, 1280.0, 760.0] }\n' > "$app/window.json"
