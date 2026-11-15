@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 (2026-11-15)
+
+### Fixes
+
+- editor: find IntelliJ from the Snap store by its launcher names
+
 ## 0.3.0 (2026-11-15)
 
 ### Features
