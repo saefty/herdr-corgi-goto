@@ -10,7 +10,7 @@
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents, window } from "herdr";
+import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents } from "herdr";
 import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv } from "./match.js";
 
 import { PROJECT_MARKS, candidates, foundFrom, gitLink, editorOf, editorName, openingLabel, openArgv } from "./editor.js";
@@ -240,8 +240,9 @@ export default class Goto extends View {
       act: (cx) => this.edit(folder, ed.id, cx) };
   }
 
-  // Reads what the editor rows wait for, as files (no process): once the installed editors (each app's Info.plist,
-  // or the launchers on Linux), per folder its `.git` and the marks of a Maven or Gradle project.
+  // Reads what the editor rows wait for, as files (no process): once the installed editors (each app's Info.plist
+  // on macOS and the launchers on Linux; both are looked at, the apps first, so the platform need not be known),
+  // per folder its `.git` and the marks of a Maven or Gradle project.
   fetchFolders(cx) {
     const waiting = Object.entries(this.folders).filter(([, v]) => v.loading && !v.started);
     if (!waiting.length) return;
@@ -249,7 +250,7 @@ export default class Goto extends View {
     for (const [, v] of waiting) v.started = true;
     cx.spawn(async (cx) => {
       this.editorsRead ??= (async () => {
-        const cands = candidates(home(), window()?.platform === "macos" ? "darwin" : "linux");
+        const cands = [...candidates(home(), "darwin"), ...candidates(home(), "linux")];
         this.editors = foundFrom(cands, (await Promise.all(cands.map((c) => read(c.path)))).map((x) => x !== null));
       })();
       await this.editorsRead;
