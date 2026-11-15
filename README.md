@@ -122,6 +122,9 @@ same lines.
 
 `node --test mods/goto/test_goto.mjs mods/goto/test_editor.mjs`
 
+In a test home, a file `editor.dry-run` in the Herdr home makes "Open … in <Editor>" start nothing: a toast says
+which program it would have started.
+
 ## For mod authors
 
 How to add rows, claim an input or switch a setup from your own mod: [PROVIDERS.md](mods/goto/PROVIDERS.md).

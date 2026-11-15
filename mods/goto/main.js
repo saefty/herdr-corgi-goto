@@ -268,7 +268,10 @@ export default class Goto extends View {
     if (this.busy || !argv) return;
     this.busy = openingLabel(id, extra);
     cx.spawn(async (cx) => {
-      const r = await exec(argv[0], argv[1], { timeout: 20000 }).catch((e) => ({ code: 1, stderr: String(e) }));
+      // A home with a file `editor.dry-run` (a test home) starts nothing and says what it would have started.
+      const dry = (await readTextFile(`${appHome()}/editor.dry-run`).catch(() => null)) !== null;
+      if (dry) notify({ title: "Open in editor: dry run", body: [argv[0], ...argv[1]].join(" ") });
+      const r = dry ? { code: 0 } : await exec(argv[0], argv[1], { timeout: 20000 }).catch((e) => ({ code: 1, stderr: String(e) }));
       this.busy = null;
       if (r.code !== 0) { notify({ title: `Couldn't open ${tilde(folder)}`, body: `${editorName(id, extra)} did not start.`, level: "error" }); return cx.notify(); }
       this.close();
