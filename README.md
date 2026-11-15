@@ -64,6 +64,7 @@ Go to, [PR review](https://github.com/saefty/herdr-corgi-pr-review) and the [cha
 ## Requirements
 
 - herdr-app 0.1.16 or newer, `git`, `find`, and `gh` (GitHub CLI) for PR titles, owner lookup and cloning.
+- For "Open in browser": `open` on macOS (part of the system), `xdg-open` on Linux (package `xdg-utils`).
 - Optional, for "Open … in <Editor>": VS Code, IntelliJ IDEA, Cursor or Zed. On macOS the app in `/Applications` or
   `~/Applications` is enough; on Linux the editor's command (`code`, `idea`, `cursor`, `zed`) in `/usr/bin`,
   `/usr/local/bin`, `/snap/bin`, `~/.local/bin` or `~/bin`. Without one, the row is not offered.
@@ -85,8 +86,8 @@ By hand, step by step: copy `mods/goto` to `~/.config/herdr-app/mods/` and merge
 in Go to). Then run `herdr-app check ~/.config/herdr-app/mods/goto`. The check starts no process and writes
 nothing.
 
-It runs `git`, `find` and `gh` (for PR titles and owner lookup) and, when you pick "Open … in <Editor>", that
-editor; it writes a small repo cache under
+It runs `git`, `find` and `gh` (for PR titles and owner lookup), `open` or `xdg-open` with the link when you pick
+"Open in browser" and, when you pick "Open … in <Editor>", that editor; it writes a small repo cache under
 `~/.config/herdr-app/`.
 
 ## Settings

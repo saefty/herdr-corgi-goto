@@ -10,8 +10,8 @@
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents, checking } from "herdr";
-import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv, isFolder } from "./match.js";
+import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents, checking, window as appWindow } from "herdr";
+import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv, isFolder, urlOpener } from "./match.js";
 
 import { PROJECT_MARKS, candidates, foundFrom, gitLink, editorOf, editorName, openingLabel, openArgv } from "./editor.js";
 
@@ -386,7 +386,7 @@ export default class Goto extends View {
     };
     const vars = { query: q, layout: shared("layout") ?? "" };
 
-    if (p.kind === "url") add({ id: "browser", tier: 0, score: 1, kind: "url", icon: "↗", title: "Open in browser", sub: p.url, act: () => this.browse(p.url) });
+    if (p.kind === "url") add({ id: "browser", tier: 0, score: 1, kind: "url", icon: "↗", title: "Open in browser", sub: p.url, act: (cx) => this.browse(p.url, cx) });
 
     if (p.kind === "path") {
       // A path that is no folder opens nothing: one row says so. Until the folder was read (fetchFolders, which
@@ -534,7 +534,7 @@ export default class Goto extends View {
       if (!slugs.length) add({ id: "repo-none", tier: 0, score: 0, kind: "repo", spin: this.looking.has(name.toLowerCase()), title: `No repo "${name}" known here`, sub: "looking on GitHub…" });
     }
     for (const slug of [...new Set([...locals.map((r) => r.slug), ...hits.map((h) => h.slug), ...(owner ? [`${owner}/${name}`] : [])])].slice(0, 3)) {
-      add({ id: `web:${slug}`, tier: 0, score: 0, kind: "url", icon: "↗", title: `Open ${slug} in browser`, sub: `https://github.com/${slug}`, act: () => this.browse(`https://github.com/${slug}`) });
+      add({ id: `web:${slug}`, tier: 0, score: 0, kind: "url", icon: "↗", title: `Open ${slug} in browser`, sub: `https://github.com/${slug}`, act: (cx) => this.browse(`https://github.com/${slug}`, cx) });
     }
   }
 
@@ -556,7 +556,7 @@ export default class Goto extends View {
       add({ ...this.handlerRow(h, score), spin: info.loading });
     }
     add({ id: `web:${url}`, tier: 0, score: score / 10, kind: "url", icon: "↗", title: info.loading || info.error ? "Open in browser" : `Open in browser · ${info.title}`,
-      sub: info.error ? `${url} · ${info.error}` : url, act: () => this.browse(url) });
+      sub: info.error ? `${url} · ${info.error}` : url, act: (cx) => this.browse(url, cx) });
   }
 
   handlerRow(h, score) {
@@ -621,9 +621,18 @@ export default class Goto extends View {
     cx.notify();
   }
 
-  browse(url) {
-    this.close();
-    exec("open", [url]).catch(() => null);
+  // One program with the link as its only argument. As with an editor, the box stays until it has returned: a closed
+  // box's tasks end, so a failure (no such program, a non-zero exit) could not say so.
+  browse(url, cx) {
+    if (this.busy) return;
+    this.busy = "Opening the link …";
+    cx.spawn(async (cx) => {
+      const ok = await exec(urlOpener(appWindow().platform), [url], { timeout: 20000 }).then((r) => r.code === 0, () => false);
+      this.busy = null;
+      if (!ok) { notify({ title: "Couldn't open the link", body: url, level: "error" }); return cx.notify(); }
+      this.close();
+    });
+    cx.notify();
   }
 
   ask(q, docs, reg, cx) {

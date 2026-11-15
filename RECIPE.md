@@ -48,7 +48,7 @@ the `selected` color.
 **Built from:** `mods/goto/main.js` (view, data, actions), `match.js` (pure: parse, resolve, plug-ins,
 ranking), `editor.js` (pure: the editors, which one a folder gets, the one program that opens it), `mod.json` (`overlay: {kind: "popup", at: "top", offset: 60, width: 620, height: 408}`), and a key
 binding: `"cmd-shift-p": "mod.open:goto"`. It uses `spaces() panes() agents() commands() layouts() keys()
-focused()`, `exec` for `find`, `git`, `gh` and `open`, and `readTextFile` for `.git/config`, for the installed
+focused()`, `exec` for `find`, `git`, `gh` and `open` (`xdg-open` on Linux, by `window().platform`), and `readTextFile` for `.git/config`, for the installed
 editors (each app's `Info.plist`, or the launchers on Linux) and for a folder's `.git` and build files. The cache is
 `data/goto/cache.json` (repos found and gh lookups, bounded). The config is `goto.config.json` in the app home.
 Plug-ins are in PROVIDERS.md.

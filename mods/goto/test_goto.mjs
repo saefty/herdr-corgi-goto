@@ -1,7 +1,7 @@
 // node --test mods/goto/test_goto.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseInput, resolveRepo, rank, tokens, fuzzy, slugOf, originOf, mergeItems, substitute, matchHandlers, contextOf, route, agentTask, branchName, withEnv, isFolder } from "./match.js";
+import { parseInput, resolveRepo, rank, tokens, fuzzy, slugOf, originOf, mergeItems, substitute, matchHandlers, contextOf, route, agentTask, branchName, withEnv, isFolder, urlOpener } from "./match.js";
 
 test("parses GitHub PRs, repos, paths, URLs and text", () => {
   assert.deepEqual(parseInput("https://github.com/octo/ledger/pull/6801/files"), { kind: "pr", owner: "octo", repo: "ledger", number: 6801 });
@@ -159,4 +159,9 @@ test("only reading a folder as text says it is a folder", () => {
   assert.equal(isFolder(new Error("`herdr.readTextFile`: stream did not contain valid UTF-8")), false); // a binary file
   assert.equal(isFolder(new Error("`herdr.readTextFile`: Permission denied (os error 13)")), false);
   assert.equal(isFolder(undefined), false);
+});
+
+test("a link opens with the platform's own program", () => {
+  assert.equal(urlOpener("macos"), "open");
+  assert.equal(urlOpener("linux"), "xdg-open");
 });
