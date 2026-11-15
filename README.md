@@ -4,7 +4,7 @@
 
 <p align="center"><img src="preview.png" width="88%" alt="Go to finding an agent by &quot;reminder mail&quot;" /></p>
 
-<p align="center"><sub>✓&nbsp;Free,&nbsp;MIT &nbsp;·&nbsp; ✓&nbsp;Runs&nbsp;locally &nbsp;·&nbsp; ✓&nbsp;herdr-app&nbsp;0.1.14+</sub></p>
+<p align="center"><sub>✓&nbsp;Free,&nbsp;MIT &nbsp;·&nbsp; ✓&nbsp;Runs&nbsp;locally &nbsp;·&nbsp; ✓&nbsp;herdr-app&nbsp;0.1.16+</sub></p>
 
 Part of [Corgi](https://github.com/saefty/herdr-corgi), a set of Herdr mods that plug into each other.
 
@@ -62,7 +62,7 @@ Go to, [PR review](https://github.com/saefty/herdr-corgi-pr-review) and the [cha
 
 ## Requirements
 
-- herdr-app 0.1.14 or newer, `git`, `find`, and `gh` (GitHub CLI) for PR titles, owner lookup and cloning.
+- herdr-app 0.1.16 or newer, `git`, `find`, and `gh` (GitHub CLI) for PR titles, owner lookup and cloning.
 - Optional, for "Open … in <Editor>": VS Code, IntelliJ IDEA, Cursor or Zed. On macOS the app in `/Applications` or
   `~/Applications` is enough; on Linux the editor's command (`code`, `idea`, `cursor`, `zed`) in `/usr/bin`,
   `/usr/local/bin`, `/snap/bin`, `~/.local/bin` or `~/bin`. Without one, the row is not offered.
@@ -81,7 +81,8 @@ Or tell your agent: `Read ~/.config/herdr-app/AGENTS.md, then add this mod: http
 
 By hand, step by step: copy `mods/goto` to `~/.config/herdr-app/mods/` and merge `keys.json` into
 `~/.config/herdr-app/keys.json`. It binds ⌘⇧P to Go to and moves Herdr's palette to ⌘⌥⇧P (its commands also show up
-in Go to). Then run `herdr-app check ~/.config/herdr-app/mods/goto`.
+in Go to). Then run `herdr-app check ~/.config/herdr-app/mods/goto`. The check starts no process and writes
+nothing.
 
 It runs `git`, `find` and `gh` (for PR titles and owner lookup) and, when you pick "Open … in <Editor>", that
 editor; it writes a small repo cache under

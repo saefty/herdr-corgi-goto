@@ -10,7 +10,7 @@
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents } from "herdr";
+import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents, checking } from "herdr";
 import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv } from "./match.js";
 
 import { PROJECT_MARKS, candidates, foundFrom, gitLink, editorOf, editorName, openingLabel, openArgv } from "./editor.js";
@@ -77,6 +77,9 @@ export default class Goto extends View {
     this.schedule(cx, 0);
     // Statuses, titles and providers move while the box is open; rows follow every 2 s (data, not animation).
     cx.timer.every(2000, (cx) => { this.reindex(); this.refresh(cx); });
+    // `herdr-app check` runs init for real: there the box starts no process (find, git, the agents' shell) and
+    // writes no cache.
+    if (checking()) return;
     cx.spawn(async (cx) => {
       await this.load();
       this.reindex(); this.refresh(cx);
