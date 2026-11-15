@@ -277,7 +277,12 @@ export default class Goto extends View {
       if (dry) notify({ title: "Open in editor: dry run", body: [argv[0], ...argv[1]].join(" ") });
       const r = dry ? { code: 0 } : await exec(argv[0], argv[1], { timeout: 20000 }).catch((e) => ({ code: 1, stderr: String(e) }));
       this.busy = null;
-      if (r.code !== 0) { notify({ title: `Couldn't open ${tilde(folder)}`, body: `${editorName(id, extra)} did not start.`, level: "error" }); return cx.notify(); }
+      if (r.code !== 0) {
+        // The folder may have gone since its row was offered: then the editor is not what failed.
+        const there = await readTextFile(folder).then(() => false, isFolder);
+        notify({ title: `Couldn't open ${tilde(folder)}`, body: there ? `${editorName(id, extra)} did not start.` : "The folder is no longer there.", level: "error" });
+        return cx.notify();
+      }
       this.close();
     });
     cx.notify();
@@ -384,9 +389,11 @@ export default class Goto extends View {
     if (p.kind === "url") add({ id: "browser", tier: 0, score: 1, kind: "url", icon: "↗", title: "Open in browser", sub: p.url, act: () => this.browse(p.url) });
 
     if (p.kind === "path") {
-      const path = expandHome(p.path, home());
-      guard(path, this.newSpace(path, base(path) || path, contextOf({ path }, hook(), home())));
-      const edit = this.editorRow(path.replace(/(.)\/+$/, "$1"), base(path) || path);
+      // A path that is no folder opens nothing: one row says so. Until the folder was read (fetchFolders, which
+      // editorRow asks for) the path has no rows.
+      const path = expandHome(p.path, home()), edit = this.editorRow(path, base(path) || path), info = this.folders[path];
+      if (info?.missing) add({ id: "path-none", tier: 0, score: 0, kind: "new", icon: "?", title: "There is no folder at this path.", sub: tilde(path) });
+      else if (!info?.loading) guard(path, this.newSpace(path, base(path) || path, contextOf({ path }, hook(), home())));
       if (edit) add(edit);
     }
 
@@ -517,7 +524,8 @@ export default class Goto extends View {
 
   repoRows(name, owner, docs, guard, add) {
     const hits = resolveRepo(name, owner, this.candidates(name), hook()?.current);
-    const locals = this.repoDocs.filter((r) => r.slug && hits.some((h) => h.slug.toLowerCase() === r.slug.toLowerCase()));
+    // A clone the cache still lists but that is gone counts as not here (editorRow below asks for its folder).
+    const locals = this.repoDocs.filter((r) => r.slug && !this.folders[r.path]?.missing && hits.some((h) => h.slug.toLowerCase() === r.slug.toLowerCase()));
     for (const r of locals.slice(0, 3)) guard(r.path, { ...this.newSpace(r.path, r.name, r.context), title: `Open ${r.slug} as space` });
     for (const edit of locals.slice(0, 3).map((r) => this.editorRow(r.path, r.slug))) if (edit) add(edit);
     if (!locals.length) {

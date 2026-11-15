@@ -26,7 +26,8 @@ the `selected` color.
   "Already open" first, "Open new anyway" below), else "Clone <owner/repo>", plus "Open in browser". If a bare name is
   unknown, it is looked up with `gh repo view` under the owners seen so far. The lookup is debounced and
   cached for a day.
-- A path gives "Open as space", with the same duplicate guard. Any other URL gives "Open in browser".
+- A path gives "Open as space", with the same duplicate guard; a path that is no folder gives one row without an
+  action, "There is no folder at this path." Any other URL gives "Open in browser".
 - Text of 3+ characters also gives "Start agent: <text>" (subtitle: the agent and where). Four or more words, or
   `<space or repo>: text`, count as an instruction: the row comes right after what is open (else it is last), with
   "Start agent in a new worktree" below when the place is a local git checkout, and an open agent matching
@@ -40,7 +41,7 @@ the `selected` color.
 - A repo found here and a typed path get a second row, "Open <name> in <Editor>" with the folder as its subtitle:
   IntelliJ IDEA for a Maven or Gradle project, else VS Code; a pick another mod keeps for the project (shared
   `editor.choice`) wins; an editor that is not installed is passed over, and without any the row is not there.
-  A path that is no folder gets no such row. Installed editors and the folder are found by reading files, not by
+  A clone the cache lists but that is gone counts as not here. Installed editors and the folder are found by reading files, not by
   starting a process (a folder read as text fails with "Is a directory"; a missing path reads as null). Enter starts one program (`open -a <app>
   <folder>` on macOS) and the box says "Opening VS Code …" until it has returned.
 
