@@ -278,9 +278,10 @@ export default class Goto extends View {
       const r = dry ? { code: 0 } : await exec(argv[0], argv[1], { timeout: 20000 }).catch((e) => ({ code: 1, stderr: String(e) }));
       this.busy = null;
       if (r.code !== 0) {
-        // The folder may have gone since its row was offered: then the editor is not what failed.
+        // The folder may have gone since its row was offered: then the editor is not what failed. The editor's sentence
+        // is the first one of editor.js failedText; its second one names a link's menu, which this box does not have.
         const there = await readTextFile(folder).then(() => false, isFolder);
-        notify({ title: `Couldn't open ${tilde(folder)}`, body: there ? `${editorName(id, extra)} did not start.` : "The folder is no longer there.", level: "error" });
+        notify({ title: `Couldn't open ${tilde(folder)}`, body: there ? `${editorName(id, extra)} could not be started.` : "The folder is no longer there.", level: "error" });
         return cx.notify();
       }
       this.close();
