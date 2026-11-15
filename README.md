@@ -42,6 +42,8 @@ repo name or a few words from a session, and Enter takes you there.
 - Understands PR links, `owner/repo#123`, `repo#123`, `#123` (in the current repo), repo URLs, `owner/repo`,
   folders and other URLs. Finds the owner for a bare repo name from your clones.
 - "Already open: …" comes first when what you ask for is open somewhere.
+- A repo you have here and a folder also offer "Open … in VS Code" (or IntelliJ IDEA for a Maven or Gradle project,
+  Cursor, Zed): the folder opens in the editor, with one click or Enter.
 - "Start agent: <text>" starts the agent you pick most in Herdr with the text as its task, optionally in a new
   worktree (`~/.herdr/worktrees/<repo>/agent-<words>`, branch `agent/<words>`).
 - Ranking without an LLM: fuzzy matching on names plus word matching on what other mods know about a session,
@@ -57,6 +59,13 @@ Go to, [PR review](https://github.com/saefty/herdr-corgi-pr-review) and the [cha
 - With **PR review**, a pasted PR link offers "Review PR" and opens it in the review layout, and reviews you started show up as "Resume review".
 - With the **chat bar**, agents waiting on you show up as "Reply to …" and open their chat bubble.
 - **Your own mod** can do the same: add rows, turn a kind of input into an action, or switch between your setups (and the environment agents start with) before an action runs.
+
+## Requirements
+
+- herdr-app 0.1.14 or newer, `git`, `find`, and `gh` (GitHub CLI) for PR titles, owner lookup and cloning.
+- Optional, for "Open … in <Editor>": VS Code, IntelliJ IDEA, Cursor or Zed. On macOS the app in `/Applications` or
+  `~/Applications` is enough; on Linux the editor's command (`code`, `idea`, `cursor`, `zed`) in `/usr/bin`,
+  `/usr/local/bin`, `/snap/bin`, `~/.local/bin` or `~/bin`. Without one, the row is not offered.
 
 ## Install in three steps
 
@@ -74,7 +83,8 @@ By hand, step by step: copy `mods/goto` to `~/.config/herdr-app/mods/` and merge
 `~/.config/herdr-app/keys.json`. It binds ⌘⇧P to Go to and moves Herdr's palette to ⌘⌥⇧P (its commands also show up
 in Go to). Then run `herdr-app check ~/.config/herdr-app/mods/goto`.
 
-It runs `git`, `find` and `gh` (for PR titles and owner lookup), and writes a small repo cache under
+It runs `git`, `find` and `gh` (for PR titles and owner lookup) and, when you pick "Open … in <Editor>", that
+editor; it writes a small repo cache under
 `~/.config/herdr-app/`.
 
 ## Settings
@@ -86,6 +96,14 @@ It runs `git`, `find` and `gh` (for PR titles and owner lookup), and writes a sm
 ```
 
 `roots` are the folders searched for git repos, `depth` how deep, `cloneTo` where "Clone" puts a repo.
+
+`editors` (optional) adds an editor of your own, or replaces a built-in one by its id (`vscode`, `idea`, `cursor`,
+`zed`). Each is a program with its arguments, never a shell line:
+
+```json
+{ "editors": [{ "id": "nvim", "name": "Neovim", "folder": ["wezterm", "start", "--cwd", "{dir}", "nvim"],
+                "file": ["wezterm", "start", "nvim", "+{line}", "{file}"] }] }
+```
 
 ## Customize
 
@@ -102,7 +120,7 @@ same lines.
 
 ## Tests
 
-`node --test mods/goto/test_goto.mjs`
+`node --test mods/goto/test_goto.mjs mods/goto/test_editor.mjs`
 
 ## For mod authors
 

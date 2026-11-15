@@ -37,11 +37,17 @@ the `selected` color.
   agent/<kebab words, ≤ 40> ~/.herdr/worktrees/<repo>/agent-<words>`, then `space.new` there.
 - ↑/↓, PgUp/PgDn, Enter or a click runs the row, and Esc closes the box. A clone keeps the box open with
   "Cloning…".
+- A repo found here and a typed path get a second row, "Open <name> in <Editor>" with the folder as its subtitle:
+  IntelliJ IDEA for a Maven or Gradle project, else VS Code; a pick another mod keeps for the project (shared
+  `editor.choice`) wins; an editor that is not installed is passed over, and without any the row is not there.
+  Installed editors are found by reading files, not by starting a process. Enter starts one program (`open -a <app>
+  <folder>` on macOS) and the box says "Opening VS Code …" until it has returned.
 
 **Built from:** `mods/goto/main.js` (view, data, actions), `match.js` (pure: parse, resolve, plug-ins,
-ranking), `mod.json` (`overlay: {kind: "popup", at: "top", offset: 60, width: 620, height: 408}`), and a key
+ranking), `editor.js` (pure: the editors, which one a folder gets, the one program that opens it), `mod.json` (`overlay: {kind: "popup", at: "top", offset: 60, width: 620, height: 408}`), and a key
 binding: `"cmd-shift-p": "mod.open:goto"`. It uses `spaces() panes() agents() commands() layouts() keys()
-focused()`, `exec` for `find`, `git`, `gh` and `open`, and `readTextFile` for `.git/config`. The cache is
+focused()`, `exec` for `find`, `git`, `gh` and `open`, and `readTextFile` for `.git/config`, for the installed
+editors (each app's `Info.plist`, or the launchers on Linux) and for a folder's `.git` and build files. The cache is
 `data/goto/cache.json` (repos found and gh lookups, bounded). The config is `goto.config.json` in the app home.
 Plug-ins are in PROVIDERS.md.
 

@@ -2,14 +2,18 @@
 // - Text: ranks open agents, terminals, named tabs and spaces (title, keywords, text, folder), then local
 //   git repos, provider items, layouts and app commands.
 // - A GitHub PR (URL, owner/repo#n, repo#n, #n), a repo (URL, owner/repo, a bare name), a path, any URL.
+// - A repo you have here and a path also get "Open … in <Editor>" (editor.js: which editor, found without a
+//   process, and the one program a pick starts).
 // - Other mods plug in through shared state only (PROVIDERS.md, contract version API_VERSION): items, input
 //   handlers, repos, a context hook that carries out commands (e.g. switching a view first), and "Ask".
 // Looks like the app's command palette: a popup at the top, a 36 px search line, 32 px rows.
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents } from "herdr";
+import { agents, spaces, panes, commands, layouts, keys, shared, setShared, run, exec, theme, props, closeOverlay, appHome, home, readTextFile, writeTextFile, notify, focused, knownAgents, window } from "herdr";
 import { parseInput, resolveRepo, rank, prepare, fieldTokens, slugOf, originOf, expandHome, mergeItems, matchHandlers, contextOf, route, agentTask, branchName, withEnv } from "./match.js";
+
+import { PROJECT_MARKS, candidates, foundFrom, gitLink, editorOf, editorName, openingLabel, openArgv } from "./editor.js";
 
 const API_VERSION = 1;
 const SHOWN = 10, ROW_H = 32, LIST_H = SHOWN * ROW_H;
@@ -18,7 +22,7 @@ const SCAN_EVERY = 10 * 60000, SCAN_MAX = 600, REMOTE_MAX = 200, REMOTE_TTL = 24
 const DEFAULTS = { roots: ["~/code", "~/src", "~/projects", "~/dev"], depth: 4, cloneTo: { default: "~/code" } };
 const ICON = (n) => `mods/workspace-chrome/${n}.svg`;
 const STATUS = { blocked: ["needs you", "blocked"], done: ["finished", "done"], working: ["working", "working"], idle: ["idle", "dim"] };
-const KIND_TIP = { agent: "Jump to this agent session.", terminal: "Jump to this terminal.", tab: "Jump to this tab.", space: "Switch to this space.", command: "Run this command.", layout: "Switch to this layout.", url: "Open this link in your browser.", pr: "Open this pull request.", repo: "Open this repository.", start: "Start a new agent session.", new: "Open this folder as a new space.", clone: "Clone this repository and open it as a space.", handler: "Run this action.", ask: "Ask an agent to find the matching session." };
+const KIND_TIP = { editor: "Open this folder in the editor.", agent: "Jump to this agent session.", terminal: "Jump to this terminal.", tab: "Jump to this tab.", space: "Switch to this space.", command: "Run this command.", layout: "Switch to this layout.", url: "Open this link in your browser.", pr: "Open this pull request.", repo: "Open this repository.", start: "Start a new agent session.", new: "Open this folder as a new space.", clone: "Clone this repository and open it as a space.", handler: "Run this action.", ask: "Ask an agent to find the matching session." };
 const TITLES = { "app.palette": "Command palette", "app.settings": "Settings", "app.help": "Keys" };
 
 const configFile = () => `${appHome()}/goto.config.json`;
@@ -53,6 +57,8 @@ export default class Goto extends View {
     this.prInfo = {};     // "owner/repo#n" -> gh pr view result | {loading} | {error}
     this.asked = null;    // {query, at, loading} | {query, matches} | {query, error}
     this.busy = null;     // "Cloning owner/repo…" while a clone runs (the box stays open)
+    this.editors = null;  // {<id>: how}: the installed editors, once a row asked for them
+    this.folders = {};    // folder -> {marks, common, linked} | {loading}: what its "Open in <Editor>" row needs
     this.list = [];       // the rows shown: computed by refresh() off the render path, render only reads them
     this.tokCache = new Map(); // open entry id -> {key, tok}: its tokens while its text is unchanged
     this.tick = 0;
@@ -219,6 +225,56 @@ export default class Goto extends View {
     }
   }
 
+  // "Open <name> in <Editor>" for a folder you named: a repo you have here, or a path. Which editor: a pick kept
+  // for the project by a mod that offers one (shared "editor.choice"), else IntelliJ for a Maven or Gradle project,
+  // else VS Code (editor.js). Null until the installed editors and the folder's project were read (fetchFolders),
+  // or when no editor is installed.
+  editorRow(folder, name) {
+    if (!folder?.startsWith("/")) return null; // never an argument that could read as an option
+    const info = (this.folders[folder] ??= { loading: true });
+    if (!this.editors || info.loading) return null;
+    const extra = this.config.editors ?? [];
+    const ed = editorOf({ marks: info.marks, linked: info.linked, choice: shared("editor.choice"), key: info.common, found: this.editors, extra });
+    if (!ed) return null;
+    return { id: `edit:${folder}`, tier: 0, score: 0, kind: "editor", icon: "↗", title: `Open ${name} in ${editorName(ed.id, extra)}`, sub: tilde(folder),
+      act: (cx) => this.edit(folder, ed.id, cx) };
+  }
+
+  // Reads what the editor rows wait for, as files (no process): once the installed editors (each app's Info.plist,
+  // or the launchers on Linux), per folder its `.git` and the marks of a Maven or Gradle project.
+  fetchFolders(cx) {
+    const waiting = Object.entries(this.folders).filter(([, v]) => v.loading && !v.started);
+    if (!waiting.length) return;
+    const read = (path) => readTextFile(path).catch(() => null);
+    for (const [, v] of waiting) v.started = true;
+    cx.spawn(async (cx) => {
+      this.editorsRead ??= (async () => {
+        const cands = candidates(home(), window()?.platform === "macos" ? "darwin" : "linux");
+        this.editors = foundFrom(cands, (await Promise.all(cands.map((c) => read(c.path)))).map((x) => x !== null));
+      })();
+      await this.editorsRead;
+      for (const [folder] of waiting) {
+        const [git, ...got] = await Promise.all([read(`${folder}/.git`), ...PROJECT_MARKS.map((m) => read(`${folder}/${m === ".idea" ? ".idea/misc.xml" : m}`))]);
+        this.folders[folder] = { marks: PROJECT_MARKS.filter((_m, k) => got[k] !== null), ...gitLink(git, folder) };
+      }
+      this.refresh(cx);
+    });
+  }
+
+  // One process; the box says "Opening <Editor> …" until it has returned, then closes. Only a failure is a toast.
+  edit(folder, id, cx) {
+    const extra = this.config.editors ?? [], argv = openArgv(id, this.editors?.[id], { dir: folder }, extra);
+    if (this.busy || !argv) return;
+    this.busy = openingLabel(id, extra);
+    cx.spawn(async (cx) => {
+      const r = await exec(argv[0], argv[1], { timeout: 20000 }).catch((e) => ({ code: 1, stderr: String(e) }));
+      this.busy = null;
+      if (r.code !== 0) { notify({ title: `Couldn't open ${tilde(folder)}`, body: `${editorName(id, extra)} did not start.`, level: "error" }); return cx.notify(); }
+      this.close();
+    });
+    cx.notify();
+  }
+
   // ---- what is open ----
 
   openDocs() {
@@ -290,6 +346,7 @@ export default class Goto extends View {
       if (JSON.stringify(rows) !== JSON.stringify(shared("goto.demo.rows"))) setShared("goto.demo.rows", rows);
     }
     this.fetchPrs(cx);
+    this.fetchFolders(cx);
     cx.notify();
   }
 
@@ -321,6 +378,8 @@ export default class Goto extends View {
     if (p.kind === "path") {
       const path = expandHome(p.path, home());
       guard(path, this.newSpace(path, base(path) || path, contextOf({ path }, hook(), home())));
+      const edit = this.editorRow(path.replace(/(.)\/+$/, "$1"), base(path) || path);
+      if (edit) add(edit);
     }
 
     if (p.kind === "repo") this.repoRows(p.repo, p.owner, docs, guard, add);
@@ -452,6 +511,7 @@ export default class Goto extends View {
     const hits = resolveRepo(name, owner, this.candidates(name), hook()?.current);
     const locals = this.repoDocs.filter((r) => r.slug && hits.some((h) => h.slug.toLowerCase() === r.slug.toLowerCase()));
     for (const r of locals.slice(0, 3)) guard(r.path, { ...this.newSpace(r.path, r.name, r.context), title: `Open ${r.slug} as space` });
+    for (const edit of locals.slice(0, 3).map((r) => this.editorRow(r.path, r.slug))) if (edit) add(edit);
     if (!locals.length) {
       const slugs = hits.length ? hits.map((h) => h.slug) : owner ? [`${owner}/${name}`] : [];
       for (const slug of slugs.slice(0, 3)) add({ ...this.cloneRow(slug, hits.find((h) => h.slug === slug)?.context ?? this.ownerContext(slug)), tier: 0, score: 1e5 });
