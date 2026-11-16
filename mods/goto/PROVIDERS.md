@@ -8,8 +8,10 @@ Go to finds what is already open (spaces, tabs, agents, terminals), local git re
 paths, URLs, layouts and app commands. Other mods add to it through shared state only. Nothing here is
 required. Go to never reads another mod's files, and a mod that writes these keys works without Go to.
 
-Go to sets `goto.api = {version: 1}` when it opens, so a mod can check the version. Providers write their
-keys whether or not Go to is installed. Load order doesn't matter, because Go to reads the keys each time it opens and every 2 s while it is open.
+Go to sets `goto.api = {version: 1}` when it opens, so a mod can check the version. It exists only once the box
+was opened in this app session, so never wait for it before writing your keys: providers write them whether or
+not Go to is installed. Load order doesn't matter, because Go to reads the keys each time it opens and every 2 s
+while it is open.
 
 ## Registering
 
